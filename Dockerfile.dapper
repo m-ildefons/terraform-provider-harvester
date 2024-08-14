@@ -23,6 +23,10 @@ ENV DAPPER_OUTPUT ./bin ./dist
 ENV DAPPER_DOCKER_SOCKET true
 ENV HOME ${DAPPER_SOURCE}
 
+COPY go.mod ${DAPPER_SOURCE}/go.mod
+COPY go.sum ${DAPPER_SOURCE}/go.sum
 WORKDIR ${DAPPER_SOURCE}
+RUN go mod download
+
 ENTRYPOINT ["./scripts/entry"]
 CMD ["ci"]

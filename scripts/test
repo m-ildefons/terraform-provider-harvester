@@ -3,5 +3,5 @@ set -e
 
 cd $(dirname $0)/..
 
-echo Running tests
-go test -cover -tags=test .
+echo Running tests:
+go test -cover -tags=test . ./...
