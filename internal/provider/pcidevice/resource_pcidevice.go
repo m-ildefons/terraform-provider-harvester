@@ -68,7 +68,6 @@ func resourcePCIDeviceCreate(ctx context.Context, d *schema.ResourceData, meta i
 	}
 
 	namespace := d.Get(constants.FieldCommonNamespace).(string)
-	name := d.Get(constants.FieldCommonName).(string)
 
 	// Get VM name and namespace
 	vmNameRaw := d.Get(constants.FieldPCIDeviceVMName).(string)
@@ -117,37 +116,60 @@ func resourcePCIDeviceCreate(ctx context.Context, d *schema.ResourceData, meta i
 		return diag.FromErr(fmt.Errorf("failed to create dynamic client: %w", err))
 	}
 
-	// Build PCIDeviceClaim object
-	pcideviceClaim := &unstructured.Unstructured{
-		Object: map[string]interface{}{
-			"apiVersion": "devices.harvesterhci.io/v1beta1",
-			"kind":       "PCIDeviceClaim",
-			"metadata": map[string]interface{}{
-				"name":      name,
-				"namespace": namespace,
-				"labels":    labels,
+	// Create a PCIDeviceClaim for each PCI address
+	// IMPORTANT: The PCIDeviceClaim name MUST match the PCIDevice name format: node-address
+	// The admission webhook validates that the PCIDevice exists with this exact name
+	// Format: {nodeName}-{address with colons replaced by dashes}
+	// Example: harv1.home.lo-0000001f3 for address 0000:00:1f.3 on node harv1.home.lo
+	createdClaimNames := []string{}
+	
+	for _, pciAddress := range pciAddresses {
+		// Generate claim name: must match PCIDevice name format
+		// Convert address 0000:00:1f.3 to 0000001f3 (remove colons and dots)
+		addressPart := strings.ReplaceAll(strings.ReplaceAll(pciAddress, ":", ""), ".", "")
+		claimName := fmt.Sprintf("%s-%s", nodeName, addressPart)
+		
+		// Build PCIDeviceClaim object
+		pcideviceClaim := &unstructured.Unstructured{
+			Object: map[string]interface{}{
+				"apiVersion": "devices.harvesterhci.io/v1beta1",
+				"kind":       "PCIDeviceClaim",
+				"metadata": map[string]interface{}{
+					"name":   claimName,
+					"labels": labels,
+				},
+				"spec": map[string]interface{}{
+					"address":  pciAddress, // Single address per claim
+					"nodeName": nodeName,
+				},
 			},
-			"spec": map[string]interface{}{
-				"nodeName": nodeName,
-				"vmName":   vmName,
-				"addresses": pciAddresses,
-			},
-		},
-	}
+		}
 
-	// Create the PCIDeviceClaim
-	created, err := dynamicClient.Resource(pcideviceClaimGVR).Namespace(namespace).Create(ctx, pcideviceClaim, metav1.CreateOptions{})
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create PCIDeviceClaim: %w", err))
+		// Create the PCIDeviceClaim (cluster-scoped, no namespace)
+		// First, try to get the resource to check if API is accessible
+		_, getErr := dynamicClient.Resource(pcideviceClaimGVR).Get(ctx, claimName, metav1.GetOptions{})
+		if getErr == nil {
+			// Claim already exists, use existing one
+			createdClaimNames = append(createdClaimNames, claimName)
+			continue
+		}
+		
+		created, err := dynamicClient.Resource(pcideviceClaimGVR).Create(ctx, pcideviceClaim, metav1.CreateOptions{})
+		if err != nil {
+			if apierrors.IsAlreadyExists(err) {
+				// Claim already exists, use existing one
+				createdClaimNames = append(createdClaimNames, claimName)
+				continue
+			}
+			return diag.FromErr(fmt.Errorf("failed to create PCIDeviceClaim %s (GVR: %s/%s/%s): %w", claimName, pcideviceClaimGVR.Group, pcideviceClaimGVR.Version, pcideviceClaimGVR.Resource, err))
+		}
+		
+		createdClaimNames = append(createdClaimNames, created.GetName())
 	}
 
 	// Set resource ID (format: namespace/vmname/claimname)
-	d.SetId(fmt.Sprintf("%s/%s/%s", vmNamespace, vmName, name))
-
-	// Store the created resource name in case it differs
-	if created.GetName() != name {
-		d.SetId(fmt.Sprintf("%s/%s/%s", vmNamespace, vmName, created.GetName()))
-	}
+	// Use the first claim name as the primary identifier
+	d.SetId(fmt.Sprintf("%s/%s/%s", vmNamespace, vmName, createdClaimNames[0]))
 
 	return resourcePCIDeviceRead(ctx, d, meta)
 }
@@ -176,7 +198,8 @@ func resourcePCIDeviceRead(ctx context.Context, d *schema.ResourceData, meta int
 		return diag.FromErr(fmt.Errorf("failed to create dynamic client: %w", err))
 	}
 
-	pcideviceClaim, err := dynamicClient.Resource(pcideviceClaimGVR).Namespace(vmNamespace).Get(ctx, claimName, metav1.GetOptions{})
+	// PCIDeviceClaim is cluster-scoped, not namespaced
+	pcideviceClaim, err := dynamicClient.Resource(pcideviceClaimGVR).Get(ctx, claimName, metav1.GetOptions{})
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			d.SetId("")
@@ -185,16 +208,10 @@ func resourcePCIDeviceRead(ctx context.Context, d *schema.ResourceData, meta int
 		return diag.FromErr(err)
 	}
 
-	// Verify it's for the correct VM
+	// Extract spec data
 	spec, ok := pcideviceClaim.Object["spec"].(map[string]interface{})
 	if !ok {
 		return diag.Errorf("invalid PCIDeviceClaim spec")
-	}
-
-	claimVMName, ok := spec["vmName"].(string)
-	if !ok || claimVMName != vmName {
-		d.SetId("")
-		return nil
 	}
 
 	// Set resource data
@@ -213,9 +230,12 @@ func resourcePCIDeviceRead(ctx context.Context, d *schema.ResourceData, meta int
 		return diag.FromErr(err)
 	}
 
-	addresses, ok := spec["addresses"].([]interface{})
-	if ok {
-		if err := d.Set(constants.FieldPCIDevicePCIAddresses, addresses); err != nil {
+	// PCIDeviceClaim uses single address, but we need to collect all addresses
+	// for this resource. For now, get the address from this claim.
+	// TODO: If multiple addresses, we need to list all claims with matching labels
+	address, ok := spec["address"].(string)
+	if ok && address != "" {
+		if err := d.Set(constants.FieldPCIDevicePCIAddresses, []string{address}); err != nil {
 			return diag.FromErr(err)
 		}
 	}
@@ -285,7 +305,8 @@ func resourcePCIDeviceUpdate(ctx context.Context, d *schema.ResourceData, meta i
 		return diag.FromErr(fmt.Errorf("failed to create dynamic client: %w", err))
 	}
 
-	existing, err := dynamicClient.Resource(pcideviceClaimGVR).Namespace(vmNamespace).Get(ctx, claimName, metav1.GetOptions{})
+	// PCIDeviceClaim is cluster-scoped, not namespaced
+	existing, err := dynamicClient.Resource(pcideviceClaimGVR).Get(ctx, claimName, metav1.GetOptions{})
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			d.SetId("")
@@ -294,11 +315,10 @@ func resourcePCIDeviceUpdate(ctx context.Context, d *schema.ResourceData, meta i
 		return diag.FromErr(err)
 	}
 
-	// Update the PCIDeviceClaim
+	// Update the PCIDeviceClaim spec
 	existing.Object["spec"] = map[string]interface{}{
-		"nodeName":  nodeName,
-		"vmName":    targetVMName,
-		"addresses": pciAddresses,
+		"address":  pciAddresses[0], // PCIDeviceClaim uses single address
+		"nodeName": nodeName,
 	}
 
 	metadata, ok := existing.Object["metadata"].(map[string]interface{})
@@ -308,7 +328,8 @@ func resourcePCIDeviceUpdate(ctx context.Context, d *schema.ResourceData, meta i
 	}
 	metadata["labels"] = labels
 
-	_, err = dynamicClient.Resource(pcideviceClaimGVR).Namespace(vmNamespace).Update(ctx, existing, metav1.UpdateOptions{})
+	// PCIDeviceClaim is cluster-scoped, not namespaced
+	_, err = dynamicClient.Resource(pcideviceClaimGVR).Update(ctx, existing, metav1.UpdateOptions{})
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to update PCIDeviceClaim: %w", err))
 	}
@@ -335,7 +356,6 @@ func resourcePCIDeviceDelete(ctx context.Context, d *schema.ResourceData, meta i
 		return diag.Errorf("invalid resource ID format: %s (expected namespace/vmname/claimname)", id)
 	}
 
-	vmNamespace := parts[0]
 	claimName := parts[2]
 
 	// Delete the PCIDeviceClaim
@@ -344,7 +364,8 @@ func resourcePCIDeviceDelete(ctx context.Context, d *schema.ResourceData, meta i
 		return diag.FromErr(fmt.Errorf("failed to create dynamic client: %w", err))
 	}
 
-	err = dynamicClient.Resource(pcideviceClaimGVR).Namespace(vmNamespace).Delete(ctx, claimName, metav1.DeleteOptions{})
+	// PCIDeviceClaim is cluster-scoped, not namespaced
+	err = dynamicClient.Resource(pcideviceClaimGVR).Delete(ctx, claimName, metav1.DeleteOptions{})
 	if err != nil && !apierrors.IsNotFound(err) {
 		return diag.FromErr(fmt.Errorf("failed to delete PCIDeviceClaim: %w", err))
 	}
