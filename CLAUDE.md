@@ -124,3 +124,18 @@ KUBECONFIG=/root/workspace/TERRAFORM/TESTBACKUP/rke2.yaml kubectl get vm -n defa
 
 2. **Correction** - Utilisation de l'API Harvester `virtualmachinebackups` (harvesterhci.io/v1beta1) avec `type: snapshot`
    - Resultat: Succes - Snapshot cree correctement
+
+### Release
+
+- **Version:** v1.7.0-snap
+- **URL:** https://github.com/jniedergang/terraform-provider-harvester/releases/tag/v1.7.0-snap
+- **Type:** Pre-release
+- **Contenu:**
+  - Binary: terraform-provider-harvester (Linux amd64)
+  - Instructions d'installation (manuelle et dev override)
+  - Documentation complete de la feature
+  - Exemples d'utilisation
+
+### Documentation mise a jour
+
+- `docs/resources/virtualmachine.md` - Ajout du champ `create_initial_snapshot` et exemple d'utilisation
