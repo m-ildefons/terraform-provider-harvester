@@ -12,6 +12,37 @@ description: |-
 
 ## Example Usage
 
+### Basic VM with Initial Snapshot
+
+```terraform
+resource "harvester_virtualmachine" "with_snapshot" {
+  name      = "my-vm"
+  namespace = "default"
+
+  cpu    = 2
+  memory = "4Gi"
+
+  # Automatically create a snapshot after VM is ready
+  create_initial_snapshot = true
+
+  disk {
+    name       = "rootdisk"
+    type       = "disk"
+    size       = "20Gi"
+    bus        = "virtio"
+    boot_order = 1
+    image      = "default/ubuntu-22.04"
+    auto_delete = true
+  }
+
+  network_interface {
+    name = "nic-1"
+  }
+}
+```
+
+### Multiple VMs
+
 ```terraform
 resource "harvester_virtualmachine" "k3os" {
   count     = 3
@@ -198,6 +229,7 @@ resource "harvester_virtualmachine" "opensuse154" {
 - `cloudinit` (Block List, Max: 1) (see [below for nested schema](#nestedblock--cloudinit))
 - `cpu` (Number)
 - `cpu_pinning` (Boolean) To enable VM CPU pinning, ensure that at least one node has the CPU manager enabled
+- `create_initial_snapshot` (Boolean) Create an initial snapshot after the VM is created and ready. The snapshot will be named `{vm-name}-initial`. Default: `false`
 - `description` (String) Any text you want that better describes this resource
 - `efi` (Boolean)
 - `hostname` (String)
