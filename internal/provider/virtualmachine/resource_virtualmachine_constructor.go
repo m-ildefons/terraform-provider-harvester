@@ -50,14 +50,16 @@ func (c *Constructor) Setup() util.Processors {
 		{
 			Field: constants.FieldVirtualMachineCPU,
 			Parser: func(i interface{}) error {
-				vmBuilder.CPU(i.(int))
+				vmBuilder.CPUSockets(i.(int))
+				vmBuilder.CPUThreads(1)
+				vmBuilder.CPUCores(1)
 				return nil
 			},
 		},
 		{
 			Field: constants.FieldVirtualMachineMemory,
 			Parser: func(i interface{}) error {
-				vmBuilder.Memory(i.(string))
+				vmBuilder.GuestMemory(i.(string))
 				return nil
 			},
 		},

@@ -4,7 +4,7 @@ go 1.25
 
 replace (
 	github.com/google/gnostic-models => github.com/google/gnostic-models v0.6.9
-	github.com/harvester/harvester => github.com/harvester/harvester v0.0.0-20251016061812-c537e12b7f09
+	github.com/harvester/harvester => github.com/m-ildefons/harvester v0.0.0-20260115125144-127b7d329ff6
 	github.com/harvester/harvester-network-controller => github.com/harvester/harvester-network-controller v0.3.1
 
 	github.com/openshift/api => github.com/openshift/api v0.0.0-20191219222812-2987a591a72c

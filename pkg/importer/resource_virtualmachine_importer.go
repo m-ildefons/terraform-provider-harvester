@@ -49,7 +49,10 @@ func (v *VMImporter) Memory() string {
 }
 
 func (v *VMImporter) CPU() int {
-	return int(v.VirtualMachine.Spec.Template.Spec.Domain.CPU.Cores)
+	cores := int(v.VirtualMachine.Spec.Template.Spec.Domain.CPU.Cores)
+	threads := int(v.VirtualMachine.Spec.Template.Spec.Domain.CPU.Threads)
+	sockets := int(v.VirtualMachine.Spec.Template.Spec.Domain.CPU.Sockets)
+	return cores * threads * sockets
 }
 
 func (v *VMImporter) DedicatedCPUPlacement() bool {
@@ -71,6 +74,14 @@ func (v *VMImporter) SecureBoot() bool {
 
 func (v *VMImporter) EvictionStrategy() bool {
 	return *v.VirtualMachine.Spec.Template.Spec.EvictionStrategy == kubevirtv1.EvictionStrategyLiveMigrate
+}
+
+func (v *VMImporter) CPUAndMemoryHotplug() bool {
+	hotplug, ok := v.VirtualMachine.ObjectMeta.Annotations[harvesterutil.AnnotationEnableCPUAndMemoryHotplug]
+	if !ok || hotplug == "false" {
+		return false
+	}
+	return true
 }
 
 func (v *VMImporter) SSHKeys() ([]string, error) {
@@ -403,6 +414,7 @@ func ResourceVirtualMachineStateGetter(vm *kubevirtv1.VirtualMachine, vmi *kubev
 			constants.FieldVirtualMachineCPUPinning:            vmImporter.DedicatedCPUPlacement(),
 			constants.FieldVirtualMachineIsolateEmulatorThread: vmImporter.IsolateEmulatorThread(),
 			constants.FieldVirtualMachineNodeSelector:          vm.Spec.Template.Spec.NodeSelector,
+			constants.FieldCPUAndMemoryHotplug:                 vmImporter.CPUAndMemoryHotplug(),
 		},
 	}, nil
 }

@@ -5,6 +5,8 @@ source $(dirname $0)/version
 
 cd $(dirname $0)/..
 
+go mod tidy
+
 mkdir -p bin
 [ "$(uname)" != "Darwin" ] && LINKFLAGS="-extldflags -static -s"
 CGO_ENABLED=0 GOARCH=amd64 go build -ldflags "-X main.VERSION=$VERSION $LINKFLAGS" -o bin/terraform-provider-harvester-amd64
