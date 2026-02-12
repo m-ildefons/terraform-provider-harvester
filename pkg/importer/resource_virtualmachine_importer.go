@@ -86,8 +86,22 @@ func (v *VMImporter) CPUThreads() int {
 	return t
 }
 
-func (v *VMImporter) EvictionStrategy() bool {
-	return *v.VirtualMachine.Spec.Template.Spec.EvictionStrategy == kubevirtv1.EvictionStrategyLiveMigrate
+func (v *VMImporter) EvictionStrategy() string {
+	if v.VirtualMachine.Spec.Template.Spec.EvictionStrategy == nil {
+		return "LiveMigrateIfPossible"
+	}
+	return string(*v.VirtualMachine.Spec.Template.Spec.EvictionStrategy)
+}
+
+func (v *VMImporter) TerminationGracePeriodSeconds() int {
+	if v.VirtualMachine.Spec.Template.Spec.TerminationGracePeriodSeconds == nil {
+		return 30
+	}
+	return int(*v.VirtualMachine.Spec.Template.Spec.TerminationGracePeriodSeconds)
+}
+
+func (v *VMImporter) OSType() string {
+	return v.VirtualMachine.Annotations[constants.AnnotationOSType]
 }
 
 func (v *VMImporter) SSHKeys() ([]string, error) {
@@ -620,6 +634,10 @@ func ResourceVirtualMachineStateGetter(vm *kubevirtv1.VirtualMachine, vmi *kubev
 			constants.FieldVirtualMachinePodAntiAffinity:       vmImporter.PodAntiAffinity(),
 			constants.FieldVirtualMachineCPUSockets:            vmImporter.CPUSockets(),
 			constants.FieldVirtualMachineCPUThreads:            vmImporter.CPUThreads(),
+
+			constants.FieldVirtualMachineEvictionStrategy:              vmImporter.EvictionStrategy(),
+			constants.FieldVirtualMachineTerminationGracePeriodSeconds: vmImporter.TerminationGracePeriodSeconds(),
+			constants.FieldVirtualMachineOSType:                        vmImporter.OSType(),
 		},
 	}, nil
 }
