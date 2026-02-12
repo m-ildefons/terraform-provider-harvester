@@ -16,14 +16,13 @@ import (
 	"github.com/harvester/terraform-provider-harvester/internal/provider/keypair"
 	"github.com/harvester/terraform-provider-harvester/internal/provider/loadbalancer"
 	"github.com/harvester/terraform-provider-harvester/internal/provider/network"
+	"github.com/harvester/terraform-provider-harvester/internal/provider/pcidevice"
 	"github.com/harvester/terraform-provider-harvester/internal/provider/schedulebackup"
 	"github.com/harvester/terraform-provider-harvester/internal/provider/setting"
 	"github.com/harvester/terraform-provider-harvester/internal/provider/storageclass"
 	"github.com/harvester/terraform-provider-harvester/internal/provider/virtualmachine"
 	"github.com/harvester/terraform-provider-harvester/internal/provider/vlanconfig"
 	"github.com/harvester/terraform-provider-harvester/internal/provider/volume"
-	"github.com/harvester/terraform-provider-harvester/internal/provider/schedulebackup"
-	"github.com/harvester/terraform-provider-harvester/internal/provider/pcidevice"
 	"github.com/harvester/terraform-provider-harvester/pkg/constants"
 )
 
@@ -79,6 +78,7 @@ func Provider() *schema.Provider {
 			constants.ResourceTypePCIDevice:        pcidevice.ResourcePCIDevice(),
 			constants.ResourceTypeBootstrap:       bootstrap.ResourceBootstrap(),
 			constants.ResourceTypeScheduleBackup:  schedulebackup.ResourceScheduleBackup(),
+			constants.ResourceTypePCIDevice:       pcidevice.ResourcePCIDevice(),
 		},
 		ConfigureContextFunc: providerConfig,
 	}
