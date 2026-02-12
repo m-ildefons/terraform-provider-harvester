@@ -11,6 +11,8 @@ const (
 	FieldVirtualMachineRunStrategy           = "run_strategy"
 	FieldVirtualMachineCPU                   = "cpu"
 	FieldVirtualMachineMemory                = "memory"
+	FieldVirtualMachineCPURequest            = "cpu_request"
+	FieldVirtualMachineMemoryRequest         = "memory_request"
 	FieldVirtualMachineSSHKeys               = "ssh_keys"
 	FieldVirtualMachineCloudInit             = "cloudinit"
 	FieldVirtualMachineDisk                  = "disk"
