@@ -13,9 +13,9 @@ resource "harvester_schedule_backup" "example" {
   name      = "example-volume-backup"
   namespace = "default"
 
-  vm_name = "default/example-vm"
-  schedule    = "0 2 * * *"  # Daily at 2 AM
-  retain      = 7            # Keep 7 backups
+  vm_name     = "default/example-vm"
+  schedule    = "0 2 * * *" # Daily at 2 AM
+  retain      = 7           # Keep 7 backups
   concurrency = 1
   enabled     = true
 }
@@ -25,8 +25,8 @@ resource "harvester_volume_backup" "example_with_labels" {
   name      = "example-volume-backup-labeled"
   namespace = "default"
 
-  vm_name = "default/example-vm"
-  schedule    = "0 */6 * * *"  # Every 6 hours
+  vm_name     = "default/example-vm"
+  schedule    = "0 */6 * * *" # Every 6 hours
   retain      = 5
   concurrency = 2
 
@@ -35,7 +35,7 @@ resource "harvester_volume_backup" "example_with_labels" {
     team        = "devops"
   }
 
-  groups = ["backup-group-1"]
+  groups  = ["backup-group-1"]
   enabled = true
 }
 

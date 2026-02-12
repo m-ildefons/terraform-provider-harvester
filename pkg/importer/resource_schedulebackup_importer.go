@@ -22,8 +22,8 @@ func ResourceScheduleBackupStateGetter(obj *harvsterv1.ScheduleVMBackup) (*State
 
 	// Build the resource states from the ScheduleVMBackup CRD
 	states := map[string]interface{}{
-		constants.FieldCommonNamespace:         obj.Namespace,
-		constants.FieldCommonName:              obj.Name,
+		constants.FieldCommonNamespace:           obj.Namespace,
+		constants.FieldCommonName:                obj.Name,
 		constants.FieldScheduleBackupVMName:      helper.BuildNamespacedName(obj.Namespace, vmName),
 		constants.FieldScheduleBackupSchedule:    obj.Spec.Cron,
 		constants.FieldScheduleBackupRetain:      obj.Spec.Retain,
@@ -32,7 +32,7 @@ func ResourceScheduleBackupStateGetter(obj *harvsterv1.ScheduleVMBackup) (*State
 	}
 
 	// Add labels if present
-	if obj.Labels != nil && len(obj.Labels) > 0 {
+	if len(obj.Labels) > 0 {
 		states[constants.FieldScheduleBackupLabels] = obj.Labels
 	}
 
