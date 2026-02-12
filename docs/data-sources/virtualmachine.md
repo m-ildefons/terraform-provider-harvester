@@ -47,6 +47,7 @@ data "harvester_virtualmachine" "opensuse154" {
 - `description` (String) Any text you want that better describes this resource
 - `disk` (List of Object) (see [below for nested schema](#nestedatt--disk))
 - `efi` (Boolean)
+- `eviction_strategy` (String) Eviction strategy for the VM (None, LiveMigrate, LiveMigrateIfPossible, External)
 - `hostname` (String)
 - `id` (String) The ID of this resource.
 - `input` (List of Object) (see [below for nested schema](#nestedatt--input))
@@ -60,6 +61,7 @@ data "harvester_virtualmachine" "opensuse154" {
 - `node_affinity` (List of Object) Node affinity rules for scheduling VMs based on node labels (see [below for nested schema](#nestedatt--node_affinity))
 - `node_name` (String)
 - `node_selector` (Map of String) Node selector for scheduling the VM. The key is the label key and the value is the label value.
+- `os_type` (String) OS type annotation for KVM guest optimizations (e.g. linux, windows)
 - `pod_affinity` (List of Object) Pod affinity rules to co-locate VMs with matching pods (see [below for nested schema](#nestedatt--pod_affinity))
 - `pod_anti_affinity` (List of Object) Pod anti-affinity rules to separate VMs from matching pods (see [below for nested schema](#nestedatt--pod_anti_affinity))
 - `reserved_memory` (String)
@@ -76,6 +78,7 @@ For example: `sample-tag = sample` adds label `tag.harvesterhci.io/sample-tag: s
 For `ssh-user` tag, the value is added to `cloudinit.user_data` if:
 1. Both `cloudinit.user_data_base64` and `cloudinit.user_data_secret_name` are empty.
 2. There is no `user` field in `cloudinit.user_data`.
+- `termination_grace_period_seconds` (Number) Grace period in seconds before the VM is forcefully terminated
 - `tpm` (List of Object) (see [below for nested schema](#nestedatt--tpm))
 
 <a id="nestedatt--cloudinit"></a>

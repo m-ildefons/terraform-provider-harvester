@@ -12,37 +12,6 @@ description: |-
 
 ## Example Usage
 
-### Basic VM with Initial Snapshot
-
-```terraform
-resource "harvester_virtualmachine" "with_snapshot" {
-  name      = "my-vm"
-  namespace = "default"
-
-  cpu    = 2
-  memory = "4Gi"
-
-  # Automatically create a snapshot after VM is ready
-  create_initial_snapshot = true
-
-  disk {
-    name       = "rootdisk"
-    type       = "disk"
-    size       = "20Gi"
-    bus        = "virtio"
-    boot_order = 1
-    image      = "default/ubuntu-22.04"
-    auto_delete = true
-  }
-
-  network_interface {
-    name = "nic-1"
-  }
-}
-```
-
-### Multiple VMs
-
 ```terraform
 resource "harvester_virtualmachine" "k3os" {
   count     = 3
@@ -235,6 +204,7 @@ resource "harvester_virtualmachine" "opensuse154" {
 - `create_initial_snapshot` (Boolean) Create an initial snapshot named {vm-name}-initial after the VM is created and ready
 - `description` (String) Any text you want that better describes this resource
 - `efi` (Boolean)
+- `eviction_strategy` (String) Eviction strategy for the VM (None, LiveMigrate, LiveMigrateIfPossible, External)
 - `hostname` (String)
 - `input` (Block List) (see [below for nested schema](#nestedblock--input))
 - `isolate_emulator_thread` (Boolean) To enable isolate emulator thread, ensure that at least one node has the CPU manager enabled, also VM CPU pinning must be enabled. Note that enable option will allocate an additional dedicated CPU.
@@ -245,6 +215,7 @@ resource "harvester_virtualmachine" "opensuse154" {
 - `namespace` (String)
 - `node_affinity` (Block List, Max: 1) Node affinity rules for scheduling VMs based on node labels (see [below for nested schema](#nestedblock--node_affinity))
 - `node_selector` (Map of String) Node selector for scheduling the VM. The key is the label key and the value is the label value.
+- `os_type` (String) OS type annotation for KVM guest optimizations (e.g. linux, windows)
 - `pod_affinity` (Block List, Max: 1) Pod affinity rules to co-locate VMs with matching pods (see [below for nested schema](#nestedblock--pod_affinity))
 - `pod_anti_affinity` (Block List, Max: 1) Pod anti-affinity rules to separate VMs from matching pods (see [below for nested schema](#nestedblock--pod_anti_affinity))
 - `reserved_memory` (String)
@@ -260,6 +231,7 @@ For example: `sample-tag = sample` adds label `tag.harvesterhci.io/sample-tag: s
 For `ssh-user` tag, the value is added to `cloudinit.user_data` if:
 1. Both `cloudinit.user_data_base64` and `cloudinit.user_data_secret_name` are empty.
 2. There is no `user` field in `cloudinit.user_data`.
+- `termination_grace_period_seconds` (Number) Grace period in seconds before the VM is forcefully terminated
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 - `tpm` (Block List, Max: 1) (see [below for nested schema](#nestedblock--tpm))
 
