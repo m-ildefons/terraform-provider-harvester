@@ -229,7 +229,7 @@ resource "harvester_virtualmachine" "opensuse154" {
 - `cloudinit` (Block List, Max: 1) (see [below for nested schema](#nestedblock--cloudinit))
 - `cpu` (Number)
 - `cpu_pinning` (Boolean) To enable VM CPU pinning, ensure that at least one node has the CPU manager enabled
-- `create_initial_snapshot` (Boolean) Create an initial snapshot after the VM is created and ready. The snapshot will be named `{vm-name}-initial`. Default: `false`
+- `create_initial_snapshot` (Boolean) Create an initial snapshot named {vm-name}-initial after the VM is created and ready
 - `description` (String) Any text you want that better describes this resource
 - `efi` (Boolean)
 - `hostname` (String)

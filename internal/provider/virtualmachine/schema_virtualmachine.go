@@ -151,7 +151,7 @@ please use %s instead of this deprecated field:
 			Type:        schema.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Create an initial snapshot after the VM is created and ready",
+			Description: "Create an initial snapshot named {vm-name}-initial after the VM is created and ready",
 		},
 		constants.FieldVirtualMachineNodeAffinity: {
 			Type:        schema.TypeList,

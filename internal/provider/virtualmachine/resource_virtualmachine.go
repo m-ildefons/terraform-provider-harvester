@@ -6,15 +6,14 @@ import (
 	"strings"
 	"time"
 
+	harvsterv1 "github.com/harvester/harvester/pkg/apis/harvesterhci.io/v1beta1"
 	harvesterutil "github.com/harvester/harvester/pkg/util"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	k8sschema "k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/dynamic"
 	kubevirtv1 "kubevirt.io/api/core/v1"
 
 	"github.com/harvester/terraform-provider-harvester/internal/config"
@@ -24,12 +23,6 @@ import (
 	"github.com/harvester/terraform-provider-harvester/pkg/helper"
 	"github.com/harvester/terraform-provider-harvester/pkg/importer"
 )
-
-var vmBackupGVR = k8sschema.GroupVersionResource{
-	Group:    "harvesterhci.io",
-	Version:  "v1beta1",
-	Resource: "virtualmachinebackups",
-}
 
 func ResourceVirtualMachine() *schema.Resource {
 	return &schema.Resource{
@@ -329,34 +322,25 @@ func getRemovedPVCs(d *schema.ResourceData, vm *kubevirtv1.VirtualMachine) []str
 }
 
 func createInitialSnapshot(ctx context.Context, c *client.Client, namespace, vmName string) error {
-	dynamicClient, err := dynamic.NewForConfig(c.RestConfig)
-	if err != nil {
-		return fmt.Errorf("failed to create dynamic client: %w", err)
-	}
-
 	snapshotName := fmt.Sprintf("%s-initial", vmName)
+	apiGroup := "kubevirt.io"
 
-	// Use Harvester VirtualMachineBackup API with type: snapshot
-	vmBackup := &unstructured.Unstructured{
-		Object: map[string]interface{}{
-			"apiVersion": "harvesterhci.io/v1beta1",
-			"kind":       "VirtualMachineBackup",
-			"metadata": map[string]interface{}{
-				"name":      snapshotName,
-				"namespace": namespace,
+	vmBackup := &harvsterv1.VirtualMachineBackup{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      snapshotName,
+			Namespace: namespace,
+		},
+		Spec: harvsterv1.VirtualMachineBackupSpec{
+			Source: corev1.TypedLocalObjectReference{
+				APIGroup: &apiGroup,
+				Kind:     "VirtualMachine",
+				Name:     vmName,
 			},
-			"spec": map[string]interface{}{
-				"source": map[string]interface{}{
-					"apiGroup": "kubevirt.io",
-					"kind":     "VirtualMachine",
-					"name":     vmName,
-				},
-				"type": "snapshot",
-			},
+			Type: harvsterv1.Snapshot,
 		},
 	}
 
-	_, err = dynamicClient.Resource(vmBackupGVR).Namespace(namespace).Create(ctx, vmBackup, metav1.CreateOptions{})
+	_, err := c.HarvesterClient.HarvesterhciV1beta1().VirtualMachineBackups(namespace).Create(ctx, vmBackup, metav1.CreateOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to create snapshot: %w", err)
 	}
