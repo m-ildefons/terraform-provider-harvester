@@ -40,6 +40,7 @@ data "harvester_virtualmachine" "opensuse154" {
 - `cloudinit` (List of Object) (see [below for nested schema](#nestedatt--cloudinit))
 - `cpu` (Number)
 - `cpu_pinning` (Boolean) To enable VM CPU pinning, ensure that at least one node has the CPU manager enabled
+- `cpu_request` (String) CPU request as Kubernetes quantity (e.g. 1, 500m). Defaults to cpu value. Set lower for overcommit.
 - `cpu_sockets` (Number) Number of CPU sockets
 - `cpu_threads` (Number) Number of threads per core
 - `create_initial_snapshot` (Boolean) Create an initial snapshot named {vm-name}-initial after the VM is created and ready
@@ -53,6 +54,7 @@ data "harvester_virtualmachine" "opensuse154" {
 - `labels` (Map of String)
 - `machine_type` (String)
 - `memory` (String)
+- `memory_request` (String) Memory request as Kubernetes quantity (e.g. 512Mi, 1Gi). Defaults to memory value. Set lower for overcommit.
 - `message` (String)
 - `network_interface` (List of Object) (see [below for nested schema](#nestedatt--network_interface))
 - `node_affinity` (List of Object) Node affinity rules for scheduling VMs based on node labels (see [below for nested schema](#nestedatt--node_affinity))
