@@ -68,6 +68,8 @@ const (
 	DefaultEvictionStrategy              = "LiveMigrateIfPossible"
 	DefaultTerminationGracePeriodSeconds = 30
 
+	FieldVirtualMachineHugepages = "hugepages"
+
 	StateVirtualMachineStarting = "Starting"
 	StateVirtualMachineRunning  = "Running"
 	StateVirtualMachineStopping = "Stopping"

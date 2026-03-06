@@ -37,6 +37,7 @@ import (
 	kubeovnegw "github.com/harvester/terraform-provider-harvester/internal/provider/kubeovn_vpc_egress_gateway"
 	kubeovnnatgw "github.com/harvester/terraform-provider-harvester/internal/provider/kubeovn_vpc_nat_gateway"
 	"github.com/harvester/terraform-provider-harvester/internal/provider/loadbalancer"
+	"github.com/harvester/terraform-provider-harvester/internal/provider/namespace"
 	"github.com/harvester/terraform-provider-harvester/internal/provider/network"
 	"github.com/harvester/terraform-provider-harvester/internal/provider/pcidevice"
 	"github.com/harvester/terraform-provider-harvester/internal/provider/schedulebackup"
@@ -98,6 +99,7 @@ func Provider() *schema.Provider {
 			constants.ResourceTypeKubeOVNVpcEgressGateway: kubeovnegw.DataSourceKubeOVNVpcEgressGateway(),
 			constants.ResourceTypeKubeOVNVpcNatGateway:    kubeovnnatgw.DataSourceKubeOVNVpcNatGateway(),
 			constants.ResourceTypeLoadBalancer:            loadbalancer.DataSourceLoadBalancer(),
+			constants.ResourceTypeNamespace:               namespace.DataSourceNamespace(),
 			constants.ResourceTypeNetwork:                 network.DataSourceNetwork(),
 			constants.ResourceTypeScheduleBackup:          schedulebackup.DataSourceScheduleBackup(),
 			constants.ResourceTypeSetting:                 setting.DataSourceSetting(),
@@ -134,6 +136,7 @@ func Provider() *schema.Provider {
 			constants.ResourceTypeKubeOVNVpcEgressGateway: kubeovnegw.ResourceKubeOVNVpcEgressGateway(),
 			constants.ResourceTypeKubeOVNVpcNatGateway:    kubeovnnatgw.ResourceKubeOVNVpcNatGateway(),
 			constants.ResourceTypeLoadBalancer:            loadbalancer.ResourceLoadBalancer(),
+			constants.ResourceTypeNamespace:               namespace.ResourceNamespace(),
 			constants.ResourceTypeNetwork:                 network.ResourceNetwork(),
 			constants.ResourceTypePCIDevice:               pcidevice.ResourcePCIDevice(),
 			constants.ResourceTypeScheduleBackup:          schedulebackup.ResourceScheduleBackup(),

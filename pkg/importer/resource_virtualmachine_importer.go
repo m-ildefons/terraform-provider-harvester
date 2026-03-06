@@ -126,6 +126,14 @@ func (v *VMImporter) OSType() string {
 	return v.VirtualMachine.Annotations[constants.AnnotationOSType]
 }
 
+func (v *VMImporter) HugepagesSize() string {
+	memory := v.VirtualMachine.Spec.Template.Spec.Domain.Memory
+	if memory == nil || memory.Hugepages == nil {
+		return ""
+	}
+	return memory.Hugepages.PageSize
+}
+
 func (v *VMImporter) SSHKeys() ([]string, error) {
 	var sshKeys []string
 	sshNames := v.VirtualMachine.Spec.Template.ObjectMeta.Annotations[builder.AnnotationKeyVirtualMachineSSHNames]
@@ -705,6 +713,7 @@ func ResourceVirtualMachineStateGetter(vm *kubevirtv1.VirtualMachine, vmi *kubev
 			constants.FieldVirtualMachineEvictionStrategy:              vmImporter.EvictionStrategy(),
 			constants.FieldVirtualMachineTerminationGracePeriodSeconds: vmImporter.TerminationGracePeriodSeconds(),
 			constants.FieldVirtualMachineOSType:                        vmImporter.OSType(),
+			constants.FieldVirtualMachineHugepages:                     vmImporter.HugepagesSize(),
 		},
 	}, nil
 }
