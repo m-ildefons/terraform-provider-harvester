@@ -38,6 +38,7 @@ import (
 	kubeovnnatgw "github.com/harvester/terraform-provider-harvester/internal/provider/kubeovn_vpc_nat_gateway"
 	"github.com/harvester/terraform-provider-harvester/internal/provider/loadbalancer"
 	"github.com/harvester/terraform-provider-harvester/internal/provider/network"
+	"github.com/harvester/terraform-provider-harvester/internal/provider/pcidevice"
 	"github.com/harvester/terraform-provider-harvester/internal/provider/schedulebackup"
 	"github.com/harvester/terraform-provider-harvester/internal/provider/setting"
 	"github.com/harvester/terraform-provider-harvester/internal/provider/storageclass"
@@ -134,6 +135,7 @@ func Provider() *schema.Provider {
 			constants.ResourceTypeKubeOVNVpcNatGateway:    kubeovnnatgw.ResourceKubeOVNVpcNatGateway(),
 			constants.ResourceTypeLoadBalancer:            loadbalancer.ResourceLoadBalancer(),
 			constants.ResourceTypeNetwork:                 network.ResourceNetwork(),
+			constants.ResourceTypePCIDevice:               pcidevice.ResourcePCIDevice(),
 			constants.ResourceTypeScheduleBackup:          schedulebackup.ResourceScheduleBackup(),
 			constants.ResourceTypeSetting:                 setting.ResourceSetting(),
 			constants.ResourceTypeStorageClass:            storageclass.ResourceStorageClass(),
