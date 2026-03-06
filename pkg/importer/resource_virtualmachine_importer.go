@@ -398,6 +398,21 @@ func (v *VMImporter) Tolerations() []map[string]interface{} {
 	return result
 }
 
+func (v *VMImporter) InstallGuestAgent() bool {
+	for _, volume := range v.VirtualMachine.Spec.Template.Spec.Volumes {
+		var userData string
+		if volume.CloudInitNoCloud != nil {
+			userData = volume.CloudInitNoCloud.UserData
+		} else if volume.CloudInitConfigDrive != nil {
+			userData = volume.CloudInitConfigDrive.UserData
+		}
+		if userData != "" && strings.Contains(userData, "qemu-guest-agent") {
+			return true
+		}
+	}
+	return false
+}
+
 func (v *VMImporter) NodeName() string {
 	if v.VirtualMachineInstance == nil {
 		return ""
@@ -734,6 +749,7 @@ func ResourceVirtualMachineStateGetter(vm *kubevirtv1.VirtualMachine, vmi *kubev
 			constants.FieldVirtualMachineOSType:                        vmImporter.OSType(),
 			constants.FieldVirtualMachineHugepages:                     vmImporter.HugepagesSize(),
 			constants.FieldVirtualMachineToleration:                    vmImporter.Tolerations(),
+			constants.FieldVirtualMachineInstallGuestAgent:             vmImporter.InstallGuestAgent(),
 		},
 	}, nil
 }

@@ -161,6 +161,8 @@ func parseWeightedPodAffinityTerms(data []interface{}) []corev1.WeightedPodAffin
 
 const (
 	vmCreator = "terraform-provider-harvester"
+
+	guestAgentSnippet = "package_update: true\npackages:\n  - qemu-guest-agent\nruncmd:\n  - - systemctl\n    - enable\n    - '--now'\n    - qemu-ga"
 )
 
 var (
@@ -171,7 +173,8 @@ type Constructor struct {
 	Client  *client.Client
 	Context context.Context
 
-	Builder *builder.VMBuilder
+	Builder           *builder.VMBuilder
+	InstallGuestAgent bool
 }
 
 func (c *Constructor) Setup() util.Processors {
@@ -477,6 +480,14 @@ func (c *Constructor) Setup() util.Processors {
 			Required: true,
 		},
 		{
+			Field: constants.FieldVirtualMachineInstallGuestAgent,
+			Parser: func(i interface{}) error {
+				c.InstallGuestAgent = i.(bool)
+				return nil
+			},
+			Required: true,
+		},
+		{
 			Field: constants.FieldVirtualMachineCloudInit,
 			Parser: func(i interface{}) error {
 				r := i.(map[string]interface{})
@@ -541,6 +552,15 @@ func (c *Constructor) Setup() util.Processors {
 							cloudInitSource.UserData = fmt.Sprintf("#cloud-config\nssh_authorized_keys:\n  - %s", strings.Join(publicKeys, "\n  - "))
 						} else {
 							cloudInitSource.UserData += fmt.Sprintf("\nssh_authorized_keys:\n  - %s", strings.Join(publicKeys, "\n  - "))
+						}
+					}
+				}
+				if c.InstallGuestAgent && cloudInitSource.UserDataBase64 == "" && cloudInitSource.UserDataSecretName == "" {
+					if !strings.Contains(cloudInitSource.UserData, "qemu-guest-agent") {
+						if cloudInitSource.UserData == "" {
+							cloudInitSource.UserData = "#cloud-config\n" + guestAgentSnippet
+						} else {
+							cloudInitSource.UserData += "\n" + guestAgentSnippet
 						}
 					}
 				}
