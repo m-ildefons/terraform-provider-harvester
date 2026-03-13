@@ -75,6 +75,8 @@ const (
 	DefaultEvictionStrategy              = "LiveMigrateIfPossible"
 	DefaultTerminationGracePeriodSeconds = 30
 
+	FieldVirtualMachineInstallGuestAgent = "install_guest_agent"
+
 	StateVirtualMachineStarting = "Starting"
 	StateVirtualMachineRunning  = "Running"
 	StateVirtualMachineStopping = "Stopping"
