@@ -18,6 +18,7 @@ import (
 	"github.com/harvester/terraform-provider-harvester/internal/provider/loadbalancer"
 	"github.com/harvester/terraform-provider-harvester/internal/provider/namespace"
 	"github.com/harvester/terraform-provider-harvester/internal/provider/network"
+	"github.com/harvester/terraform-provider-harvester/internal/provider/resourcequota"
 	"github.com/harvester/terraform-provider-harvester/internal/provider/schedulebackup"
 	"github.com/harvester/terraform-provider-harvester/internal/provider/setting"
 	"github.com/harvester/terraform-provider-harvester/internal/provider/storageclass"
@@ -64,6 +65,7 @@ func Provider() *schema.Provider {
 			constants.ResourceTypeVirtualMachine:  virtualmachine.DataSourceVirtualMachine(),
 			constants.ResourceTypeVolume:          volume.DataSourceVolume(),
 			constants.ResourceTypeScheduleBackup:  schedulebackup.DataSourceScheduleBackup(),
+			constants.ResourceTypeResourceQuota:   resourcequota.DataSourceResourceQuota(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			constants.ResourceTypeBlockDevice:     blockdevice.ResourceBlockDevice(),
@@ -82,6 +84,7 @@ func Provider() *schema.Provider {
 			constants.ResourceTypeVolume:          volume.ResourceVolume(),
 			constants.ResourceTypeBootstrap:       bootstrap.ResourceBootstrap(),
 			constants.ResourceTypeScheduleBackup:  schedulebackup.ResourceScheduleBackup(),
+			constants.ResourceTypeResourceQuota:   resourcequota.ResourceResourceQuota(),
 		},
 		ConfigureContextFunc: providerConfig,
 	}
