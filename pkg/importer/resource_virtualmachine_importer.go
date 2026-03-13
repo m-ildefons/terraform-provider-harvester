@@ -363,6 +363,18 @@ func exportLabelSelectorRequirements(requirements []metav1.LabelSelectorRequirem
 	return result
 }
 
+func (v *VMImporter) HostDevices() []map[string]interface{} {
+	hostDevices := v.VirtualMachine.Spec.Template.Spec.Domain.Devices.HostDevices
+	result := make([]map[string]interface{}, 0, len(hostDevices))
+	for _, hd := range hostDevices {
+		result = append(result, map[string]interface{}{
+			constants.FieldVirtualMachinePCIDeviceName:       hd.Name,
+			constants.FieldVirtualMachinePCIDeviceDeviceName: hd.DeviceName,
+		})
+	}
+	return result
+}
+
 // exportLabelSelector exports a label selector to Terraform state format
 func exportLabelSelector(selector *metav1.LabelSelector) []map[string]interface{} {
 	if selector == nil {
@@ -668,6 +680,7 @@ func ResourceVirtualMachineStateGetter(vm *kubevirtv1.VirtualMachine, vmi *kubev
 			constants.FieldVirtualMachineNodeAffinity:          vmImporter.NodeAffinity(),
 			constants.FieldVirtualMachinePodAffinity:           vmImporter.PodAffinity(),
 			constants.FieldVirtualMachinePodAntiAffinity:       vmImporter.PodAntiAffinity(),
+			constants.FieldVirtualMachinePCIDevice:             vmImporter.HostDevices(),
 		},
 	}, nil
 }

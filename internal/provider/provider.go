@@ -40,6 +40,7 @@ import (
 	"github.com/harvester/terraform-provider-harvester/internal/provider/loadbalancer"
 	"github.com/harvester/terraform-provider-harvester/internal/provider/namespace"
 	"github.com/harvester/terraform-provider-harvester/internal/provider/network"
+	"github.com/harvester/terraform-provider-harvester/internal/provider/pcidevice"
 	"github.com/harvester/terraform-provider-harvester/internal/provider/resourcequota"
 	"github.com/harvester/terraform-provider-harvester/internal/provider/schedulebackup"
 	"github.com/harvester/terraform-provider-harvester/internal/provider/setting"
@@ -105,6 +106,8 @@ func Provider() *schema.Provider {
 			constants.ResourceTypeLoadBalancer:                  loadbalancer.DataSourceLoadBalancer(),
 			constants.ResourceTypeNamespace:                     namespace.DataSourceNamespace(),
 			constants.ResourceTypeNetwork:                       network.DataSourceNetwork(),
+			constants.DataSourceTypePCIDevice:                   pcidevice.DataSourcePCIDevice(),
+			constants.DataSourceTypePCIDeviceClaim:              pcidevice.DataSourcePCIDeviceClaim(),
 			constants.ResourceTypeResourceQuota:                 resourcequota.DataSourceResourceQuota(),
 			constants.ResourceTypeScheduleBackup:                schedulebackup.DataSourceScheduleBackup(),
 			constants.ResourceTypeSetting:                       setting.DataSourceSetting(),
