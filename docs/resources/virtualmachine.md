@@ -29,6 +29,13 @@ resource "harvester_virtualmachine" "k3os" {
   efi         = true
   secure_boot = false
 
+  toleration {
+    key      = "key1"
+    operator = "Equal"
+    value    = "value1"
+    effect   = "NoSchedule"
+  }
+
   network_interface {
     name         = "nic-1"
     network_name = harvester_network.mgmt-vlan1.id
@@ -233,6 +240,7 @@ For `ssh-user` tag, the value is added to `cloudinit.user_data` if:
 2. There is no `user` field in `cloudinit.user_data`.
 - `termination_grace_period_seconds` (Number) Grace period in seconds before the VM is forcefully terminated
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `toleration` (Block List) Tolerations allow the VM to be scheduled on nodes with matching taints (see [below for nested schema](#nestedblock--toleration))
 - `tpm` (Block List, Max: 1) (see [below for nested schema](#nestedblock--tpm))
 
 ### Read-Only
@@ -699,6 +707,18 @@ Optional:
 - `delete` (String)
 - `read` (String)
 - `update` (String)
+
+
+<a id="nestedblock--toleration"></a>
+### Nested Schema for `toleration`
+
+Optional:
+
+- `effect` (String) The taint effect to match (empty matches all effects)
+- `key` (String) The taint key that the toleration applies to
+- `operator` (String) The operator (Equal or Exists)
+- `toleration_seconds` (Number) Period of time the toleration tolerates the taint (only for NoExecute)
+- `value` (String) The taint value (only used when operator is Equal)
 
 
 <a id="nestedblock--tpm"></a>

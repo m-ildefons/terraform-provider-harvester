@@ -229,6 +229,51 @@ please use %s instead of this deprecated field:
 				},
 			},
 		},
+		constants.FieldVirtualMachineToleration: {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Tolerations allow the VM to be scheduled on nodes with matching taints",
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					constants.FieldTolerationKey: {
+						Type:        schema.TypeString,
+						Optional:    true,
+						Description: "The taint key that the toleration applies to",
+					},
+					constants.FieldTolerationOperator: {
+						Type:     schema.TypeString,
+						Optional: true,
+						Default:  "Equal",
+						ValidateFunc: validation.StringInSlice([]string{
+							"Equal",
+							"Exists",
+						}, false),
+						Description: "The operator (Equal or Exists)",
+					},
+					constants.FieldTolerationValue: {
+						Type:        schema.TypeString,
+						Optional:    true,
+						Description: "The taint value (only used when operator is Equal)",
+					},
+					constants.FieldTolerationEffect: {
+						Type:     schema.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"",
+							"NoSchedule",
+							"PreferNoSchedule",
+							"NoExecute",
+						}, false),
+						Description: "The taint effect to match (empty matches all effects)",
+					},
+					constants.FieldTolerationTolerationSeconds: {
+						Type:        schema.TypeInt,
+						Optional:    true,
+						Description: "Period of time the toleration tolerates the taint (only for NoExecute)",
+					},
+				},
+			},
+		},
 		constants.FieldVirtualMachineCPUSockets: {
 			Type:        schema.TypeInt,
 			Description: "Number of CPU sockets. Works with cpu (cores) and cpu_threads to define CPU topology (total vCPUs = sockets x cores x threads).",

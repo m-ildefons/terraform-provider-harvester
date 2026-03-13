@@ -371,6 +371,25 @@ func (v *VMImporter) Volume() ([]map[string]interface{}, []map[string]interface{
 	return diskStates, cloudInitState, nil
 }
 
+func (v *VMImporter) Tolerations() []map[string]interface{} {
+	tolerations := v.VirtualMachine.Spec.Template.Spec.Tolerations
+	result := make([]map[string]interface{}, 0, len(tolerations))
+	for _, t := range tolerations {
+		tolMap := map[string]interface{}{
+			constants.FieldTolerationKey:               t.Key,
+			constants.FieldTolerationOperator:          string(t.Operator),
+			constants.FieldTolerationValue:             t.Value,
+			constants.FieldTolerationEffect:            string(t.Effect),
+			constants.FieldTolerationTolerationSeconds: 0,
+		}
+		if t.TolerationSeconds != nil {
+			tolMap[constants.FieldTolerationTolerationSeconds] = int(*t.TolerationSeconds)
+		}
+		result = append(result, tolMap)
+	}
+	return result
+}
+
 func (v *VMImporter) NodeName() string {
 	if v.VirtualMachineInstance == nil {
 		return ""
@@ -715,6 +734,7 @@ func ResourceVirtualMachineStateGetter(vm *kubevirtv1.VirtualMachine, vmi *kubev
 			constants.FieldVirtualMachinePCIDevice:             vmImporter.HostDevices(),
 			constants.FieldVirtualMachineCPUSockets:            vmImporter.CPUSockets(),
 			constants.FieldVirtualMachineCPUThreads:            vmImporter.CPUThreads(),
+			constants.FieldVirtualMachineToleration:            vmImporter.Tolerations(),
 
 			constants.FieldVirtualMachineEvictionStrategy:              vmImporter.EvictionStrategy(),
 			constants.FieldVirtualMachineTerminationGracePeriodSeconds: vmImporter.TerminationGracePeriodSeconds(),
