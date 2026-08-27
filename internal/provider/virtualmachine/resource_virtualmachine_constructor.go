@@ -263,6 +263,15 @@ func (c *Constructor) Setup() util.Processors {
 					}
 				}
 
+				if r[constants.FieldDiskDedicatedIOThread].(bool) {
+					disks := vmBuilder.VirtualMachine.Spec.Template.Spec.Domain.Devices.Disks
+					for i := range disks {
+						if disks[i].Name == diskName {
+							disks[i].DedicatedIOThread = ptr.To(true)
+							break
+						}
+					}
+				}
 				if existingVolumeName != "" {
 					vmBuilder.ExistingPVCVolume(diskName, existingVolumeName, hotPlug)
 				} else if containerImageName != "" {
@@ -438,6 +447,60 @@ func (c *Constructor) Setup() util.Processors {
 				vmBuilder.VirtualMachine.Spec.Template.Spec.Domain.CPU.IsolateEmulatorThread = i.(bool)
 				return nil
 			},
+		},
+		{
+			Field: constants.FieldVirtualMachineNetworkInterfaceMultiqueue,
+			Parser: func(i interface{}) error {
+				var multiqueue *bool
+				if i.(bool) {
+					multiqueue = ptr.To(true)
+				}
+				vmBuilder.VirtualMachine.Spec.Template.Spec.Domain.Devices.NetworkInterfaceMultiQueue = multiqueue
+				return nil
+			},
+			Required: true,
+		},
+		{
+			Field: constants.FieldVirtualMachineBlockMultiQueue,
+			Parser: func(i interface{}) error {
+				var multiqueue *bool
+				if i.(bool) {
+					multiqueue = ptr.To(true)
+				}
+				vmBuilder.VirtualMachine.Spec.Template.Spec.Domain.Devices.BlockMultiQueue = multiqueue
+				return nil
+			},
+			Required: true,
+		},
+		{
+			Field: constants.FieldVirtualMachineIOThreadsPolicy,
+			Parser: func(i interface{}) error {
+				var ioThreadsPolicy *kubevirtv1.IOThreadsPolicy
+				if policy := i.(string); policy != "" {
+					ioThreadsPolicy = ptr.To(kubevirtv1.IOThreadsPolicy(policy))
+				}
+				vmBuilder.VirtualMachine.Spec.Template.Spec.Domain.IOThreadsPolicy = ioThreadsPolicy
+				return nil
+			},
+			Required: true,
+		},
+		{
+			Field: constants.FieldVirtualMachineIOThreadsCount,
+			Parser: func(i interface{}) error {
+				var ioThreads *kubevirtv1.DiskIOThreads
+				if count := i.(int); count > 0 {
+					ioThreadsPolicy := vmBuilder.VirtualMachine.Spec.Template.Spec.Domain.IOThreadsPolicy
+					if ioThreadsPolicy == nil || *ioThreadsPolicy != kubevirtv1.IOThreadsPolicySupplementalPool {
+						return fmt.Errorf("%s can only be set when %s is %q", constants.FieldVirtualMachineIOThreadsCount, constants.FieldVirtualMachineIOThreadsPolicy, kubevirtv1.IOThreadsPolicySupplementalPool)
+					}
+					ioThreads = &kubevirtv1.DiskIOThreads{
+						SupplementalPoolThreadCount: ptr.To(uint32(count)), // nolint: gosec
+					}
+				}
+				vmBuilder.VirtualMachine.Spec.Template.Spec.Domain.IOThreads = ioThreads
+				return nil
+			},
+			Required: true,
 		},
 		{
 			Field: constants.FieldVirtualMachineNodeSelector,
