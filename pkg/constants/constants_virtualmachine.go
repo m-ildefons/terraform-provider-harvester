@@ -3,7 +3,7 @@ package constants
 const (
 	ResourceTypeVirtualMachine = "harvester_virtualmachine"
 
-	FieldVirtualMachineBlockMultiQueue            = "block_multi_queue"
+	FieldVirtualMachineBlockMultiQueue            = "block_device_multiqueue"
 	FieldVirtualMachineCPU                        = "cpu"
 	FieldVirtualMachineCPUModel                   = "cpu_model"
 	FieldVirtualMachineCPUPinning                 = "cpu_pinning"
